@@ -15,6 +15,7 @@ export const Passengers = ({ state, send }) => {
 
   const submit = (e) => {
     e.preventDefault();
+    send({ type: "ADD", newPassenger: value });
     changeValue("");
   };
 

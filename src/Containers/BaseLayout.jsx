@@ -7,6 +7,8 @@ import { StepsLayout } from "./StepsLayout";
 export const BaseLayout = () => {
   const [state, send] = useMachine(bookingMachine);
 
+  console.log("nuestro estado", state.value, state.context);
+
   console.log("nuestra maquina", state.value);
 
   return (
