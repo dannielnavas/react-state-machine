@@ -1,4 +1,23 @@
+/* eslint-disable no-unused-vars */
 import { assign, createMachine } from "xstate";
+
+const fillCountries = {
+  initial: "loading",
+  states: {
+    loading: {
+      on: {
+        DONE: "success",
+        ERROR: "failure",
+      },
+    },
+    success: {},
+    failure: {
+      on: {
+        RETRY: { target: "loading" },
+      },
+    },
+  },
+};
 
 const bookingMachine = createMachine(
   {
@@ -29,6 +48,7 @@ const bookingMachine = createMachine(
           },
           CANCEL: "initial",
         },
+        ...fillCountries,
       },
       tickets: {
         on: {
@@ -38,7 +58,10 @@ const bookingMachine = createMachine(
       passengers: {
         on: {
           DONE: "tickets",
-          CANCEL: "initial",
+          CANCEL: {
+            target: "initial",
+            actions: "cleanContext",
+          },
           ADD: {
             actions: assign({
               newPassenger: ({ context, event }) =>
@@ -60,6 +83,10 @@ const bookingMachine = createMachine(
       imprimirSalida: (context, event) => {
         console.log("Saliendo del estado de búsqueda");
       },
+      cleanContext: assign({
+        selectedCountry: "",
+        passengers: [],
+      }),
     },
   }
 );
