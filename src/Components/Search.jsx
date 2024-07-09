@@ -2,7 +2,7 @@
 import { useState } from "react";
 import "./Search.css";
 
-export const Search = ({ send }) => {
+export const Search = ({ state, send }) => {
   const [flight, setFlight] = useState("");
 
   const goToPassengers = () => {
@@ -13,7 +13,7 @@ export const Search = ({ send }) => {
     setFlight(event.target.value);
   };
 
-  const options = ["Mexico", "Venezuela", "Colombia"];
+  const options = state.context.countries.map((country) => country.name.common);
 
   return (
     <div className="Search">

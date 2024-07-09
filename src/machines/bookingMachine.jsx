@@ -1,13 +1,27 @@
 /* eslint-disable no-unused-vars */
-import { assign, createMachine } from "xstate";
+import { assign, createMachine, fromPromise } from "xstate";
 
 const fillCountries = {
   initial: "loading",
   states: {
     loading: {
       on: {
-        DONE: "success",
-        ERROR: "failure",
+        invoke: {
+          id: "getCountries",
+          src: fromPromise(() =>
+            fetch("https://restcountries.com/v3.1/region/ame").then((response) =>
+              response.json()
+            )
+          ),
+          onDone: {
+            target: "success",
+            actions: assign({ countries: ({ event }) => event.data }),
+          },
+          onError: {
+            target: "failure",
+            actions: assign({ error: "fallo el request" }),
+          },
+        },
       },
     },
     success: {},
@@ -26,6 +40,8 @@ const bookingMachine = createMachine(
     context: {
       passengers: [],
       selectedCountry: "",
+      countries: [],
+      error: "",
     },
     states: {
       initial: {
@@ -51,13 +67,22 @@ const bookingMachine = createMachine(
         ...fillCountries,
       },
       tickets: {
+        after: {
+          5000: {
+            target: "initial",
+            actions: "cleanContext",
+          },
+        },
         on: {
           FINISH: "initial",
         },
       },
       passengers: {
         on: {
-          DONE: "tickets",
+          DONE: {
+            target: "tickets",
+            guard: "moreThanOnePassenger",
+          },
           CANCEL: {
             target: "initial",
             actions: "cleanContext",
@@ -87,6 +112,11 @@ const bookingMachine = createMachine(
         selectedCountry: "",
         passengers: [],
       }),
+    },
+    guards: {
+      moreThanOnePassenger: (context, event) => {
+        return context.passengers.length > 0;
+      },
     },
   }
 );
